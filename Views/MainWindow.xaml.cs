@@ -23,6 +23,7 @@ namespace MargoThermtestAssessment
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = new ViewModels.MainViewModel();
         }
     }
 }
