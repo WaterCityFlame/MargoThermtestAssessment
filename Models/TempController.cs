@@ -24,7 +24,15 @@ namespace MargoThermtestAssessment.Models
 
         public TempController()
         {
-            this.csvParser = new TextFieldParser(this.path);
+
+            this.ReadFile(this.path);
+
+        }
+
+        public void ReadFile(string path)
+        {
+            this.path = path;
+            csvParser = new TextFieldParser(this.path);
             this.csvParser.SetDelimiters(new string[] { "," });
             this.csvParser.HasFieldsEnclosedInQuotes = false;
 
@@ -41,10 +49,20 @@ namespace MargoThermtestAssessment.Models
         {
             if (!csvParser.EndOfData)
             {
-                string[] fields = csvParser.ReadFields();
-                float rawTemp = float.Parse(fields[0]);
-                float timestamp = float.Parse(fields[1]);
-                float temp = FilterNoise(rawTemp);
+                string[] fields;
+                float rawTemp;
+                float timestamp;
+                float temp;
+                try
+                {
+                    fields = csvParser.ReadFields();
+                    rawTemp = float.Parse(fields[0]);
+                    timestamp = float.Parse(fields[1]);
+                    temp = FilterNoise(rawTemp);
+                } catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
 
                 if(lastTenSeconds.Count == 50) {
                     lastTenSeconds.Dequeue();

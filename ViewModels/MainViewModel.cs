@@ -11,11 +11,15 @@ using System.Threading.Tasks;
 namespace MargoThermtestAssessment.ViewModels
 {
     using MargoThermtestAssessment.Models;
+    using Microsoft.Win32;
     using OxyPlot;
+    using System.Linq.Expressions;
+    using System.Security;
+    using Forms = System.Windows.Forms;
 
     public class MainViewModel : INotifyPropertyChanged
     {
-        private readonly Timer timer;
+        private Timer timer;
         private Models.TempController controllerData;
 
         public IList<ScatterPoint> tempReadings { get; set; }
@@ -43,7 +47,10 @@ namespace MargoThermtestAssessment.ViewModels
 
         public event PropertyChangedEventHandler PropertyChanged;
 
+        private Forms.OpenFileDialog openFileDialog;
+
         public MainViewModel() {
+            openFileDialog = new Forms.OpenFileDialog();
             this.Refresh=0;
 
             this.timer = new Timer(AddTempReading);
@@ -60,42 +67,83 @@ namespace MargoThermtestAssessment.ViewModels
 
         private void AddTempReading(object state)
         {
-            if (controllerData.PollTemp()) {
-                this.tempReadings = controllerData.tempReadings;
-                this.averageTemp = controllerData.averageTemp;
-                this.RSD = controllerData.RSD;
-
-                double currentTime = tempReadings[tempReadings.Count() - 1].X;
-                double currentTempDouble = tempReadings[tempReadings.Count() - 1].Y;
-                this.CurrentTemp = currentTempDouble.ToString("N2");
-                this.AverageTemp = averageTemp[averageTemp.Count() - 1].Y.ToString("N2");
-
-                double rsdDouble = RSD[RSD.Count() - 1].Value;
-                this.CurrentRSD = rsdDouble.ToString("N2");
-                if (rsdDouble < 1 && rsdDouble > 0)
+            try {
+                if ( controllerData.PollTemp())
                 {
-                    if (TempStabilized == "hidden")
-                    {
-                        ArrowStart = new DataPoint(currentTime, currentTempDouble+4);
-                        ArrowEnd = new DataPoint(currentTime, currentTempDouble);
-                    }
-                    TempStabilized = "visible";
-                    TempAnnotationThickness = 2;
-                } else
-                {
-                    TempStabilized = "hidden";
-                    TempAnnotationThickness = 0;
+                    this.tempReadings = controllerData.tempReadings;
+                    this.averageTemp = controllerData.averageTemp;
+                    this.RSD = controllerData.RSD;
+
+                    double currentTime = tempReadings[tempReadings.Count() - 1].X;
+                    double currentTempDouble = tempReadings[tempReadings.Count() - 1].Y;
+                    this.CurrentTemp = currentTempDouble.ToString("N2");
+                    this.AverageTemp = averageTemp[averageTemp.Count() - 1].Y.ToString("N2");
+
+                    double rsd = RSD[RSD.Count() - 1].Value;
+                    FormatRSDData(currentTime, currentTempDouble, rsd);
+
+                    this.Refresh++;
                 }
-
-                this.Refresh++;
-            } else {
+                else
+                {
+                    this.timer.Dispose();
+                }
+            } catch (Exception ex) {
                 this.timer.Dispose();
+
+                Forms.MessageBox.Show($"Error reading CSV file.\n\nError message: {ex.Message}\n\n" +
+                $"Details:\n\n{ex.StackTrace}");
+            }
+        }
+
+        private void FormatRSDData(double currentTime, double currentTemp, double rsd)
+        {
+            this.CurrentRSD = rsd.ToString("N2");
+            if (rsd < 1 && rsd > 0)
+            {
+                if (TempStabilized == "hidden")
+                {
+                    ArrowStart = new DataPoint(currentTime, currentTemp + 4);
+                    ArrowEnd = new DataPoint(currentTime, currentTemp);
+                }
+                TempStabilized = "visible";
+                TempAnnotationThickness = 2;
+            }
+            else
+            {
+                TempStabilized = "hidden";
+                TempAnnotationThickness = 0;
             }
         }
 
         private void NotifyPropertyChanged(string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public void OpenFile(object sender, EventArgs e)
+        {
+            //pause timer
+            this.timer.Dispose();
+            this.timer = new Timer(AddTempReading);
+            this.timer.Change(Timeout.Infinite, Timeout.Infinite);
+            if (openFileDialog.ShowDialog() == Forms.DialogResult.OK)
+            {
+                try
+                {
+                    string filePath = openFileDialog.FileName;
+                    controllerData.ReadFile(filePath);
+
+                    //restart timer
+                    this.timer.Change(0, 200);
+                }
+                catch (SecurityException ex)
+                {
+                    Forms.MessageBox.Show($"Security error.\n\nError message: {ex.Message}\n\n" +
+                    $"Details:\n\n{ex.StackTrace}");
+                }
+            }
+
         }
 
 

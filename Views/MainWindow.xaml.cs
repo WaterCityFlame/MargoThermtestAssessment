@@ -21,10 +21,18 @@ namespace MargoThermtestAssessment
     /// </summary>
     public partial class MainWindow : Window
     {
+
+        private ViewModels.MainViewModel dc;
+
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = new ViewModels.MainViewModel();
+            dc =  new ViewModels.MainViewModel();
+            DataContext = dc;
         }
-    }
+
+        private void OpenFile_Click(object sender, EventArgs e) {
+            dc.OpenFile(sender, e);
+        }
+    }   
 }
