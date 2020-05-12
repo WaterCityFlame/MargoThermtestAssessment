@@ -1,14 +1,22 @@
 # MargoThermtestAssessment
 Margo Collins' attempt at the software_engineer_test from Thermtest
 
-This is a simple C# and .NET app that displays temperature data from a CSV file as through it were being streamed in from a test device. Noise filtering is applied to the data. 
+This is a simple C# and .NET app that displays temperature data from a CSV file as through it were being streamed in from a test device. Noise filtering is applied to the data.
+
+## Assumptions Made:
+
+  1. **detect temperature becoming stable around a set point**
+    In real life, I would ask an engineer or data scientist for a good algorithm for this. Since that's not really an option at the moment, I've decided on a very simple algorithm: the temperature has become stable if the rolling standard deviation is less than 1. Realistically, if temperature is varying by less than 1 degree, I'd view that as stable. It looks right on the UI.
+
+  2. **average temperature and RSD displayed over a period of 10s**
+    Not sure if you wanted to see this on the graph or as text to the side. You get both!
 
 ---
-## The original assignment description is as follows: 
+## The original assignment description is as follows:
 
 Software Engineering Practical Assessment:
 
-This assessment is based on your knowledge of the following concepts : 
+This assessment is based on your knowledge of the following concepts :
 
  - .NET Framework
  - C#
@@ -17,7 +25,7 @@ This assessment is based on your knowledge of the following concepts :
  - Oxyplot
  - MVC/MVVM, a super-loop implementation of this project might seem tempeting due to it's relative simplicity.
 
-Attached is a a data stream captured by a temperature controllers. The temperature controller is attempting to stabilize a 
+Attached is a a data stream captured by a temperature controllers. The temperature controller is attempting to stabilize a
 plant around a set-point.
 
 It is formatted as follows:
