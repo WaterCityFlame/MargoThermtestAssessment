@@ -8,35 +8,64 @@ namespace MargoThermtestAssessment.Models
 {
     using OxyPlot;
     using OxyPlot.Series;
+    using Microsoft.VisualBasic.FileIO;
+    using System;
+    using System.Threading;
 
     public class TempControlPlot : PlotModel
     {
+        private string path = "Resources\\test_out.txt";
+        private TextFieldParser csvParser;
+
         public TempControlPlot()
         {
-            // Create the plot model
+            this.csvParser = new TextFieldParser(this.path);
+            this.csvParser.SetDelimiters(new string[] { "," });
+            this.csvParser.HasFieldsEnclosedInQuotes = false;
 
-            this.Title = "Simple example";
-            this.Subtitle = "using OxyPlot";
+            this.Title = "Plant Temperature Over Time";
+            ScatterSeries tempData = new ScatterSeries { 
+                Title = "Plant Temperature", 
+                MarkerType = MarkerType.Diamond, 
+                MarkerFill=OxyColors.DarkBlue};
+            this.Series.Add(tempData);
 
-            // Create two line series (markers are hidden by default)
-            var series1 = new LineSeries { Title = "Series 1", MarkerType = MarkerType.Circle };
-            series1.Points.Add(new DataPoint(0, 0));
-            series1.Points.Add(new DataPoint(10, 18));
-            series1.Points.Add(new DataPoint(20, 12));
-            series1.Points.Add(new DataPoint(30, 8));
-            series1.Points.Add(new DataPoint(40, 15));
+            OxyPlot.Axes.LinearAxis yAxis = MakeAxis("Temperature (°C)", 0, 40);
+            tempData.YAxisKey = yAxis.Key; 
+            this.Axes.Add(yAxis);
 
-            var series2 = new LineSeries { Title = "Series 2", MarkerType = MarkerType.Square };
-            series2.Points.Add(new DataPoint(0, 4));
-            series2.Points.Add(new DataPoint(10, 12));
-            series2.Points.Add(new DataPoint(20, 16));
-            series2.Points.Add(new DataPoint(30, 25));
-            series2.Points.Add(new DataPoint(40, 5));
+            OxyPlot.Axes.LinearAxis xAxis = MakeAxis("Time (Seconds)", 0, 30);
+            xAxis.Position = OxyPlot.Axes.AxisPosition.Bottom;
+            tempData.XAxisKey = xAxis.Key; 
+            this.Axes.Add(xAxis);
 
+        }
 
-            // Add the series to the plot model
-            this.Series.Add(series1);
-            this.Series.Add(series2);
+        private OxyPlot.Axes.LinearAxis MakeAxis(string title, double min, double max)
+        {
+            OxyPlot.Axes.LinearAxis axis = new OxyPlot.Axes.LinearAxis(); 
+            axis.AbsoluteMinimum = min;
+            axis.MinimumRange = max;
+            axis.MaximumRange = max;
+            axis.IsZoomEnabled = false;
+            axis.Title = title; 
+            axis.Key = title;
+            return axis;
+        }
+
+        public bool AddTempReading()
+        {
+            ScatterSeries tempData = (ScatterSeries)Series[0];
+            if (!csvParser.EndOfData)
+            {
+                string[] fields = csvParser.ReadFields();
+                float temp = float.Parse(fields[0]);
+                float timestamp = float.Parse(fields[1]);
+                tempData.Points.Add(new ScatterPoint(timestamp, temp));
+                return true;
+            }
+            else return false;
+
         }
     }
 }
