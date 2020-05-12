@@ -11,6 +11,12 @@ This is a simple C# and .NET app that displays temperature data from a CSV file 
   2. **average temperature and RSD displayed over a period of 10s**
     Not sure if you wanted to see this on the graph or as text to the side. You get both!
 
+  3. **the ability to save the test results as an XML document**
+    The XML document will only save the results that have been displayed so far. It's like the results not displayed are from timestamps in the future and cannot be displayed.
+
+  4. **the file should be selectable**
+    It is ("Open File" button, right sidebar). But! The test file that you sent me is included with this project & is open and graphed by default. Good apps git *instant* results :D
+
 ---
 ## The original assignment description is as follows:
 

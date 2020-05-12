@@ -34,5 +34,8 @@ namespace MargoThermtestAssessment
         private void OpenFile_Click(object sender, EventArgs e) {
             dc.OpenFile(sender, e);
         }
+        private void SaveFile_Click(object sender, EventArgs e) {
+            dc.SaveFile(sender, e);
+        }
     }   
 }
